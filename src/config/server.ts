@@ -1,5 +1,6 @@
 import { environment } from '../utils/environment';
 import express, { Request, Response, RequestHandler, NextFunction } from 'express';
+import bodyParser from 'body-parser';
 import routes from '../routes';
 
 const app = express();
@@ -8,7 +9,9 @@ const app = express();
 export default () => {
 
     //TODO: Add cors
-    app.use(express.json());
+    
+    app.use(bodyParser.json())
+    app.use(bodyParser.urlencoded({ extended: true }))
     app.use('/app', routes);
 
     //Cath all
