@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// The underlying table does not contain a unique identifier and can therefore currently not be handled.
+// model casas {
+  // Comprada    Int
+  // ID          Int
+  // InteriorID  Int
+  // PosX        Float
+  // PosXI       Float
+  // PosY        Float
+  // PosYI       Float
+  // PosZ        Float
+  // PosZI       Float
+  // Precio      Int
+  // Propietario String
+  // Usada       Int
+
+  // @@index([Propietario], name: "Propietario")
+// }
+
+model clan {
+  Cor           String
+  id            Int             @default(autoincrement()) @id
+  Interior      Int
+  leader        String
+  name          String
+  Publico       String
+  Skin          Int
+  SpawnA        Float
+  SpawnX        Float
+  SpawnY        Float
+  SpawnZ        Float
+  Validade      String
+  vw            Int
+  clans_members clans_members[]
+
+  @@index([name], name: "name")
+}
+
+model clans_members {
+  clanName   String
+  id         Int    @default(autoincrement()) @id
+  memberName String
+  clan       clan   @relation(fields: [clanName], references: [name])
+  user       user   @relation(fields: [memberName], references: [username])
+
+  @@index([clanName], name: "clanName")
+  @@index([memberName], name: "memberName")
+}
+
+model informaciones {
+  Cantidad Int
+  Cosa     Int
+  ID       Int @default(autoincrement()) @id
+  IDP      Int
+}
+
+// The underlying table does not contain a unique identifier and can therefore currently not be handled.
+// model objects {
+  // Bone     Int
+  // Guardado Int   @default(0)
+  // ID       Int
+  // Index    Int
+  // Model    Int
+  // OffsetX  Float
+  // OffsetY  Float
+  // OffsetZ  Float
+  // RotX     Float
+  // RotY     Float
+  // RotZ     Float
+  // ScaleX   Float
+  // ScaleY   Float
+  // ScaleZ   Float
+  // Usando   Int
+// }
+
+model post {
+  authorId   Int
+  content    String?
+  createdAt  DateTime @default(now())
+  id         Int      @default(autoincrement()) @id
+  title      String
+  titleImage String?
+  user       user     @relation(fields: [authorId], references: [id])
+
+  @@index([authorId], name: "authorId")
+}
+
+// The underlying table does not contain a unique identifier and can therefore currently not be handled.
+// model registros {
+  // Fecha    String
+  // ID       Int
+  // Password String
+  // username String
+// }
+
+model user {
+  admin         Int             @default(0)
+  arma1         Int             @default(1)
+  arma2         Int             @default(1)
+  arma3         Int             @default(1)
+  arma4         Int             @default(1)
+  arma5         Int             @default(1)
+  arma6         Int             @default(1)
+  arma7         Int             @default(1)
+  arma8         Int             @default(1)
+  Creditos      Int             @default(0)
+  deaths        Int             @default(0)
+  Donacion      Int             @default(0)
+  email         String
+  EstaOn        Int             @default(0)
+  FinAno        Int             @default(0)
+  FinDia        Int             @default(0)
+  FinMes        Int             @default(0)
+  id            Int             @default(autoincrement()) @id
+  Invitado      Int             @default(0)
+  isBanned      Int             @default(0)
+  kills         Int             @default(0)
+  level         String          @default("0")
+  Lider         Int             @default(0)
+  lostDuels     Int             @default(0)
+  money         Int             @default(0)
+  password      String
+  PM_Recebe     Int             @default(0)
+  skin          Int             @default(0)
+  TiempoJail    Int             @default(0)
+  TiempoJailS   Int             @default(0)
+  userd         String          @default("")
+  username      String
+  vColor1       Int             @default(0)
+  vColor2       Int             @default(0)
+  vip           Int             @default(0)
+  vModelo       Int             @default(0)
+  vPos_X        Float           @default(0)
+  vPos_Y        Float           @default(0)
+  vPos_Z        Float           @default(0)
+  wonedDuels    Int             @default(0)
+  clans_members clans_members[]
+  post          post[]
+
+  @@index([username], name: "username")
+}
