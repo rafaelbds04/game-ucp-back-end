@@ -1,7 +1,9 @@
 import { Request, Response, NextFunction, } from 'express';
 import { PrismaClient, userSelect } from '@prisma/client'
 
+import * as jwt from '../security/tokenParser';
 import { validateUserCreate, validateUser, validatePagination } from '../../utils/validation';
+
 
 const prisma = new PrismaClient()
 
@@ -24,16 +26,20 @@ export default {
             const usernameExist = await prisma.user.count({ where: { username } })
             if (usernameExist) return res.status(400).send({ error: { message: 'This username already used', type: 'username.exist' } });
 
-
             const result = await prisma.user.create({
                 data: {
                     username,
                     email,
                     password
+                },
+                select: {
+                    id: true
                 }
             })
 
-            return res.status(201).send({ message: 'Account created successfully!', userID: result.id })
+            const token = jwt.sign({user: result.id});
+
+            return res.status(201).send({ message: 'Account created successfully!', result, token })
 
         } catch (error) {
             next(error);
