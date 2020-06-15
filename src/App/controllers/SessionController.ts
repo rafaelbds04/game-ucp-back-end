@@ -1,12 +1,56 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import { PrismaClient } from '@prisma/client'
+
+import * as jwt from '../security/tokenParser';
+import { validateUser } from '../../utils/validation';
+
+const prisma = new PrismaClient();
 
 export default {
 
-    create: (req: Request, resp: Response) => {
-        resp.send('Session create end-point')
+    create: async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const [hashType, hash] = req.headers.authorization?.split(' ')!;
+            const [username, password] = Buffer.from(hash, 'base64').toString().split(':')
+
+            //Validade inputed values
+            const { error } = validateUser({ username, password });
+            if (error) return res.status(400).send({ error: { message: error.details[0] } });
+
+            const userExist = await prisma.user.count({ where: { username } })
+            if (!userExist) return res.status(500).send({ error: { message: 'This user does not exist.', type: 'user.not.exist' } });
+
+            const result = await prisma.user.findMany({
+                where: {
+                    AND: [
+                        { username },
+                        { password }
+                    ]
+                },
+                select: {
+                    id: true,
+                    username: true,
+                    kills: true,
+                    deaths: true,
+                    wonedDuels: true,
+                    lostDuels: true,
+                    skin: true,
+                    level: true
+                }
+            })
+
+            if (!result.length) return res.status(401).send({ error: { message: 'Unauthorized' } });
+
+            const token = jwt.sign({ user: result[0].id })
+
+            res.send({ result: result[0], token });
+
+        } catch (error) {
+            next(error);
+        }
     },
 
-    delete: (req: Request, resp: Response) => {
+    delete: async (req: Request, resp: Response, next: NextFunction) => {
         resp.send('Session delete end-point')
     }
 
