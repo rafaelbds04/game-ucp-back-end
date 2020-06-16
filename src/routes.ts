@@ -14,8 +14,8 @@ routes.delete('/session', SessionController.delete);
 routes.post('/users', UserController.create);//GENERAL to add recapcha 
 
 
-routes.get('/users', auth("ADMIN"), UserController.index); // List of accounts ADMIN
-routes.get('/user/:id', auth("USER"), UserController.show); //Show account infos  GENERAL - LOGGEDIN PLAYER(Control) - ADMIN 
+routes.get('/users', auth("MODERATOR"), UserController.index); // List of accounts ADMIN
+routes.get('/user/:id', auth("GUEST"), UserController.show); //Show account infos  GENERAL - LOGGEDIN PLAYER(Control) - ADMIN 
 routes.put('/user/:id', auth("USER"), UserController.update); //Update an account LOGGEDIN PLAYER(Control) - ADMIN 
 routes.delete('/user/:id', auth("ADMIN"), UserController.destroy); //Delete an account  ADMIN 
 //Todo: Recovery route

@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction, } from 'express';
+import { AuthRequest, Role } from '../middlewares/auth';
 import { PrismaClient, userSelect } from '@prisma/client'
 
 import * as jwt from '../security/tokenParser';
@@ -37,7 +38,7 @@ export default {
                 }
             })
 
-            const token = jwt.sign({user: result.id});
+            const token = jwt.sign({ user: result.id });
 
             return res.status(201).send({ message: 'Account created successfully!', result, token })
 
@@ -116,12 +117,13 @@ export default {
 
     },
 
-    async show(req: Request, res: Response, next: NextFunction) {
+    async show(req: AuthRequest, res: Response, next: NextFunction) {
         try {
             const { id } = req.params
 
-            const isUserAccount = false
-            const admin = false
+            //Check if requested user is a logged user and if is an admin.
+            let isRequestingUser: boolean = (<any>req).user.id === Number(id) ? true : false;
+            let hasRoleToAcess: boolean = (<any>req).user.admin >= Role.ADMIN ? true : false
 
             //Validade inputed values in query params
             const { error } = validateUser(req.params);
@@ -141,7 +143,7 @@ export default {
                 level: true
             }
 
-            select = isUserAccount || admin ? { ...select, money: true, Donacion: true, email: true, vip: true, isBanned: true } : select
+            select = isRequestingUser || hasRoleToAcess ? { ...select, money: true, Donacion: true, email: true, vip: true, isBanned: true } : select
 
             const result = await prisma.user.findOne({
                 where: {
