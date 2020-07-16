@@ -11,7 +11,7 @@ export default {
     create: async (req: Request, res: Response, next: NextFunction) => {
         try {
             const [hashType, hash] = req.headers.authorization?.split(' ')!;
-            const [username, password] = Buffer.from(hash, 'base64').toString().split(':')
+            const [username, password ] = Buffer.from(hash, 'base64').toString().split(':')
 
             //Validade inputed values
             const { error } = validateUser({ username, password });
@@ -20,15 +20,13 @@ export default {
             const userExist = await prisma.user.count({ where: { username } })
             if (!userExist) return res.status(500).send({ error: { message: 'This user does not exist.', type: 'user.not.exist' } });
 
-            const result = await prisma.user.findMany({
+            const result = await prisma.user.findOne({
                 where: {
-                    AND: [
-                        { username },
-                        { password }
-                    ]
+                    username
                 },
                 select: {
                     id: true,
+                    password: true,
                     username: true,
                     kills: true,
                     deaths: true,
@@ -39,11 +37,15 @@ export default {
                 }
             })
 
-            if (!result.length) return res.status(401).send({ error: { message: 'Unauthorized' } });
+            if (!result) return res.status(401).send({ error: { message: 'Unauthorized' } });
 
-            const token = jwt.sign({ user: result[0].id })
+            const { password: validPassword, ...userAccount } = result;
 
-            res.send({ result: result[0], token });
+            if (!(password === validPassword)) return res.status(401).send({ error: { message: 'Unauthorized', type: 'user.not.match' } });
+
+            const token = jwt.sign({ user: result.id })
+
+            res.send({ user: userAccount, token });
 
         } catch (error) {
             next(error);
